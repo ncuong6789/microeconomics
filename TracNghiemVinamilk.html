@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinamilk Academy - Trắc nghiệm tương tác</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+        .animate-shake { animation: shake 0.2s ease-in-out 0s 2; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-[#f8fafc]">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Icons placeholder (Fixed JSX fragments for multiple elements)
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const icons = {
+                play: <path d="m6 3 14 9-14 9V3z" />,
+                book: <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V5A2.5 2.5 0 0 1 6.5 2.5H20v14.5" />,
+                chevronLeft: <path d="m15 18-6-6 6-6" />,
+                chevronRight: <path d="m9 18 6-6-9-6" />,
+                grid: (
+                    <>
+                        <rect width="7" height="7" x="3" y="3" rx="1" />
+                        <rect width="7" height="7" x="14" y="3" rx="1" />
+                        <rect width="7" height="7" x="14" y="14" rx="1" />
+                        <rect width="7" height="7" x="3" y="14" rx="1" />
+                    </>
+                ),
+                check: (
+                    <>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </>
+                ),
+                x: (
+                    <>
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="15" y1="9" x2="9" y2="15" />
+                        <line x1="9" y1="9" x2="15" y2="15" />
+                    </>
+                ),
+                rotate: (
+                    <>
+                        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                        <polyline points="21 3 21 8 16 8" />
+                    </>
+                ),
+                help: (
+                    <>
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </>
+                )
+            };
+            return (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    {icons[name]}
+                </svg>
+            );
+        };
+
+        const rawSlidesData = [
+            { id: 1, question: "Các hệ thống quản lý như ERP, CRM và DMS đóng vai trò gì trong quản lý kênh phân phối của Vinamilk?", options: ["A. Chỉ dùng để tính lương cho nhân viên trong công ty.", "B. Giúp quản lý tập trung thông tin về đơn hàng, tồn kho, khách hàng và hoạt động của đối tác phân phối.", "C. Dùng để thay thế hoàn toàn vai trò của các đối tác phân phối bên ngoài.", "D. Chỉ có tác dụng hỗ trợ trong khâu sản xuất tại nhà máy."], correct: "B" },
+            { id: 2, question: "Vai trò của các cơ quan quản lý nhà nước được nhắc đến trong tài liệu là gì?", options: ["A. Trực tiếp tham gia vào quy trình giao dịch B2B của doanh nghiệp.", "B. Tạo môi trường kinh doanh minh bạch và hỗ trợ doanh nghiệp trong quá trình chuyển đổi số.", "C. Quy định chi tiết mức chiết khấu mà Vinamilk phải trả cho đối tác.", "D. Thay thế doanh nghiệp trong việc quản lý các nhà phân phối."], correct: "B" },
+            { id: 3, question: "Vinamilk nên phân loại đối tác dựa trên các tiêu chí nào để áp dụng chính sách khuyến khích phù hợp?", options: ["A. Chỉ dựa trên thời gian hợp tác lâu dài.", "B. Dựa trên vị trí địa lý của văn phòng đối tác.", "C. Doanh số, tần suất đặt hàng và khả năng phục vụ khách hàng B2B.", "D. Số lượng nhân viên mà đối tác đang sở hữu."], correct: "C" },
+            { id: 4, question: "Trong chiến lược kênh phân phối B2B của Vinamilk, định hướng quan trọng trong thời gian tới là gì?", options: ["A. Tập trung hoàn toàn vào kênh B2C truyền thống", "B. Xây dựng chiến lược kênh B2B chuyên biệt, tách bạch với kênh B2C", "C. Loại bỏ toàn bộ kênh phân phối gián tiếp", "D. Chỉ phát triển kênh bán hàng qua cửa hàng tạp hóa"], correct: "B" },
+            { id: 5, question: "Kênh phân phối truyền thống (General Trade – GT) của Vinamilk hiện đang chiếm khoảng bao nhiêu % sản lượng phân phối?", options: ["A. 20%", "B. 50%", "C. 80%", "D. 100%"], correct: "C" },
+            { id: 6, question: "Mô hình B2B trung gian được mô tả là gì?", options: ["A. Doanh nghiệp tự xây dựng website bán hàng riêng", "B. Bên mua đóng vai trò nhập hàng chính", "C. Là cầu nối giữa bên mua và bên bán thông qua sàn thương mại điện tử", "D. Là mô hình sở hữu độc quyền của một doanh nghiệp"], correct: "C" },
+            { id: 7, question: "Đặc điểm nổi bật của kênh phân phối B2B trực tiếp của Vinamilk hiện nay là gì?", options: ["A. Phục vụ đồng đều mọi nhóm khách hàng B2B, kể cả SMEs", "B. Chủ yếu tập trung vào các khách hàng tổ chức lớn như trường học, bệnh viện", "C. Phụ thuộc hoàn toàn vào các nhà phân phối trung gian", "D. Chỉ áp dụng tại thị trường quốc tế"], correct: "B" },
+            { id: 8, question: "Rủi ro lớn nhất trong kênh phân phối gián tiếp B2B của Vinamilk liên quan đến yếu tố nào?", options: ["A. Giá bán không đồng nhất giữa các khu vực", "B. Khả năng cạnh tranh của sản phẩm sữa bột", "C. Tiêu chuẩn bảo quản và chuỗi cung ứng lạnh không đồng bộ", "D. Thiếu sản phẩm mới"], correct: "C" },
+            { id: 9, question: "Trong bối cảnh B2B, lý do nào khiến Vinamilk ưu tiên nguồn lực cho các khách hàng tổ chức lớn?", options: ["A. Doanh thu từ SMEs không đáng kể", "B. Đơn hàng lớn, ổn định, giúp tối ưu chi phí logistics và vận hành", "C. SMEs không có nhu cầu sữa", "D. Chính sách pháp luật không cho phép bán cho SMEs"], correct: "B" },
+            { id: 10, question: "Điểm khác biệt quan trọng giữa kênh phân phối B2B và B2C là:", options: ["A. B2B không cần trung gian phân phối", "B. B2B có cấu trúc kênh dài hơn B2C", "C. B2B thường có kênh ngắn và mối quan hệ chặt chẽ hơn", "D. B2C chú trọng lực lượng bán hàng cá nhân hơn"], correct: "C" },
+            { id: 11, question: "Trong kênh phân phối gián tiếp B2B, điểm khác nhau cơ bản giữa đại lý và nhà phân phối là:", options: ["A. Đại lý chịu rủi ro tồn kho, nhà phân phối không chịu", "B. Nhà phân phối sở hữu hàng hóa, đại lý hưởng hoa hồng môi giới", "C. Đại lý chỉ bán cho khách hàng lớn", "D. Nhà phân phối không tham gia logistics"], correct: "B" },
+            { id: 12, question: "Mục tiêu nào sau đây không thuộc nhóm mục tiêu cơ bản khi xây dựng chiến lược kênh phân phối B2B?", options: ["A. Mức độ bao phủ thị trường", "B. Chất lượng dịch vụ khách hàng", "C. Tối ưu hóa chi phí", "D. Tối đa hóa quảng cáo truyền thông đại chúng"], correct: "D" },
+            { id: 13, question: "Trong chiến lược kênh phân phối B2B của Vinamilk, mạng lưới phân phối rộng và ổn định có vai trò quan trọng nhất vì lý do nào sau đây?", options: ["A. Giúp giảm chi phí quảng cáo đại chúng", "B. Đáp ứng yêu cầu cung ứng liên tục, đúng thời hạn của khách hàng tổ chức", "C. Tạo lợi thế về thiết kế bao bì sản phẩm", "D. Làm tăng mức độ nhận diện thương hiệu trên mạng xã hội"], correct: "B" },
+            { id: 14, question: "Trong bối cảnh B2B Marketing, vì sao Vinamilk cần duy trì hệ thống phân phối có độ ổn định cao?", options: ["A. Để dễ dàng triển khai các chương trình khuyến mãi ngắn hạn", "B. Để tăng mức độ nhận diện thương hiệu trên thị trường bán lẻ", "C. Để cạnh tranh về thiết kế sản phẩm", "D. Để đáp ứng yêu cầu cung ứng liên tục và giảm rủi ro đứt gãy nguồn hàng cho khách hàng tổ chức"], correct: "D" },
+            { id: 15, question: "Độ bao phủ rộng của mạng lưới phân phối giúp Vinamilk tạo lợi thế cạnh tranh nào quan trọng nhất trong thị trường B2B?", options: ["A. Giảm chi phí nghiên cứu và phát triển sản phẩm", "B. Gia tăng mức độ tin cậy của khách hàng tổ chức đối với khả năng cung ứng", "C. Tăng khả năng sáng tạo nội dung truyền thông", "D. Mở rộng nhanh thị trường xuất khẩu"], correct: "B" },
+            { id: 16, question: "Chiến lược phân phối của Vinamilk được biết đến với hệ thống bao phủ rộng khắp. Hiện nay, Vinamilk đang áp dụng mô hình phân phối nào là trọng tâm?", options: ["A. Chỉ tập trung vào kênh truyền thống (GT) thông qua các đại lý nhỏ lẻ.", "B. Chỉ tập trung vào kênh hiện đại (MT) như siêu thị và cửa hàng tiện lợi.", "C. Mô hình đa kênh (Omni-channel) kết hợp giữa GT, MT và hệ thống cửa hàng Giấc Mơ Sữa Việt.", "D. Chỉ phân phối trực tiếp từ nhà máy đến người tiêu dùng qua website."], correct: "C" },
+            { id: 17, question: "Để quản lý hiệu quả hàng trăm nghìn điểm bán lẻ trên toàn quốc, Vinamilk đã tiên phong ứng dụng giải pháp công nghệ nào vào hệ thống phân phối của mình?", options: ["A. Hệ thống quản trị quan hệ khách hàng (CRM).", "B. Hệ thống quản lý phân phối trực tuyến (DMS) để kiểm soát tồn kho và lộ trình.", "C. Chỉ sử dụng hóa đơn giấy và báo cáo thủ công từ các đại lý.", "D. Hệ thống tự động hóa hoàn toàn robot tại các cửa hàng bán lẻ."], correct: "B" },
+            { id: 18, question: "Bên cạnh việc mua trực tiếp tại cửa hàng, Vinamilk hiện nay cho phép khách hàng đặt mua sữa qua phương thức hiện đại nào để được giao hàng tận nhà?", options: ["A. Đặt hàng qua website thương mại điện tử chính thức hoặc ứng dụng di động.", "B. Gửi thư tay qua đường bưu điện đến nhà máy.", "C. Chỉ mua được nếu đến tận siêu thị.", "D. Gọi điện trực tiếp cho giám đốc công ty."], correct: "A" },
+            { id: 19, question: "Trong các mô hình phân phối B2B được đề cập, mô hình nào đóng vai trò cầu nối trung gian giữa bên mua và bán trên các sàn TMĐT?", options: ["A. Mô hình B2B thiên về bên bán.", "B. Mô hình B2B thiên về bên mua.", "C. Mô hình B2B trung gian.", "D. Mô hình B2B thương mại hợp tác."], correct: "C" },
+            { id: 20, question: "Đâu là hạn chế lớn nhất trong cấu trúc kênh phân phối B2B trực tiếp hiện nay của Vinamilk?", options: ["A. Không có khả năng cung cấp hàng hóa cho siêu thị lớn.", "B. Thiếu hệ thống ERP quản lý đơn hàng.", "C. Chưa khai thác đồng đều các nhóm khách hàng, chủ yếu tập trung vào các tổ chức lớn và bỏ ngỏ SMEs.", "D. Không có hệ thống cửa hàng trưng bày sản phẩm."], correct: "C" },
+            { id: 21, question: "Nguyên nhân khách quan nào dẫn đến sự thiếu đồng bộ về chất lượng sản phẩm trong kênh phân phối gián tiếp của Vinamilk?", options: ["A. Vinamilk không có tiêu chuẩn khắt khe.", "B. Năng lực logistics của nhà phân phối không đồng nhất và thiếu phương án dự phòng.", "C. Do không sử dụng hệ thống DMS.", "D. Do thiếu trạm sạc cho xe điện chuyên dụng."], correct: "B" },
+            { id: 22, question: "Hệ thống cửa hàng bán lẻ trực tiếp của Vinamilk có tên là gì?", options: ["A. Sữa Việt Store", "B. Giấc Mơ Sữa Việt", "C. Vinamilk Mart", "D. Milk World"], correct: "B" },
+            { id: 23, question: "Một trong những lợi ích của kênh thương mại điện tử đối với Vinamilk là:", options: ["A. Giảm số lượng sản phẩm", "B. Hạn chế tiếp cận khách hàng", "C. Mở rộng khả năng tiếp cận khách hàng và tăng sự thuận tiện mua sắm", "D. Chỉ phục vụ khách hàng doanh nghiệp"], correct: "C" },
+            { id: 24, question: "Một trong những lợi ích của kênh phân phối Modern Trade (MT) đối với Vinamilk là:", options: ["A. Chỉ bán sản phẩm giá rẻ", "B. Tăng khả năng quảng bá và trưng bày sản phẩm", "C. Hạn chế cạnh tranh", "D. Giảm số lượng khách hàng"], correct: "B" }
+        ];
+
+        function App() {
+            const [currentSlideIndex, setCurrentSlideIndex] = useState(-1);
+            const [viewMode, setViewMode] = useState('present');
+            const [userProgress, setUserProgress] = useState({});
+            const [score, setScore] = useState(0);
+
+            const handleOptionSelect = (slideId, optionLabel) => {
+                const currentProgress = userProgress[slideId] || { attempts: [], isCorrect: false };
+                if (currentProgress.isCorrect) return;
+
+                const slide = rawSlidesData.find(s => s.id === slideId);
+                const label = optionLabel.charAt(0);
+                const isCorrectChoice = label === slide.correct;
+
+                const newAttempts = [...currentProgress.attempts, optionLabel];
+                setUserProgress(prev => ({
+                    ...prev,
+                    [slideId]: { attempts: newAttempts, isCorrect: isCorrectChoice }
+                }));
+
+                if (isCorrectChoice && currentProgress.attempts.length === 0) {
+                    setScore(prev => prev + 1);
+                }
+            };
+
+            const resetQuiz = () => {
+                setUserProgress({});
+                setScore(0);
+                setCurrentSlideIndex(-1);
+            };
+
+            const renderTitleSlide = () => (
+                <div className="flex flex-col items-center justify-center h-full text-center px-8">
+                    <div className="w-20 h-20 bg-blue-600 rounded-3xl rotate-3 flex items-center justify-center mb-6 shadow-xl">
+                        <Icon name="book" size={40} className="text-white -rotate-3" />
+                    </div>
+                    <h1 className="text-3xl md:text-5xl font-black text-blue-900 mb-3 tracking-tight">Quản Trị Kênh Phân Phối</h1>
+                    <div className="bg-blue-600 text-white px-5 py-1.5 rounded-full text-xl font-bold mb-8 shadow-md">VINAMILK</div>
+                    <p className="text-gray-600 mb-10 max-w-lg">Hệ thống trắc nghiệm: Thử lại cho đến khi đúng. Chúc bạn đạt điểm tối đa!</p>
+                    <button onClick={() => setCurrentSlideIndex(0)} className="px-10 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-xl shadow-lg transition-all hover:-translate-y-1 active:translate-y-0 flex items-center gap-3">
+                        <Icon name="play" size={20} /> Bắt đầu ngay
+                    </button>
+                </div>
+            );
+
+            const renderQuestionSlide = () => {
+                const slide = rawSlidesData[currentSlideIndex];
+                const progress = userProgress[slide.id] || { attempts: [], isCorrect: false };
+                const isCorrect = progress.isCorrect;
+
+                return (
+                    <div className="flex flex-col h-full px-6 py-8 md:px-12">
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest">Câu hỏi {slide.id}</span>
+                            {isCorrect && <div className="flex items-center gap-2 font-black text-green-600 animate-bounce"><Icon name="check" size={18} /> ĐÚNG RỒI!</div>}
+                        </div>
+                        <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-8 leading-snug">{slide.question}</h2>
+                        <div className="grid gap-3 flex-1 overflow-y-auto custom-scrollbar pr-2">
+                            {slide.options.map((option, idx) => {
+                                const label = option.charAt(0);
+                                const hasAttempted = progress.attempts.includes(option);
+                                const isThisCorrect = label === slide.correct;
+                                const shouldBeDisabled = isCorrect || (hasAttempted && !isThisCorrect);
+                                
+                                let statusClass = "bg-white border-gray-200 hover:border-blue-400 hover:bg-blue-50 cursor-pointer";
+                                let iconColor = "bg-gray-100 text-gray-600";
+                                if (hasAttempted) {
+                                    if (isThisCorrect) {
+                                        statusClass = "bg-green-50 border-green-500 ring-2 ring-green-500 shadow-sm cursor-default";
+                                        iconColor = "bg-green-600 text-white";
+                                    } else {
+                                        statusClass = "bg-red-50 border-red-300 opacity-60 cursor-not-allowed animate-shake";
+                                        iconColor = "bg-red-500 text-white";
+                                    }
+                                } else if (isCorrect) {
+                                    statusClass = "bg-gray-50 border-gray-100 opacity-40 cursor-default";
+                                }
+
+                                return (
+                                    <button key={idx} disabled={shouldBeDisabled} onClick={() => handleOptionSelect(slide.id, option)} className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${statusClass}`}>
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold flex-shrink-0 ${iconColor}`}>{label}</div>
+                                        <span className={`text-sm md:text-base font-medium flex-1 ${hasAttempted && !isThisCorrect ? 'text-red-400 line-through' : 'text-gray-700'}`}>{option.substring(3)}</span>
+                                        {hasAttempted && !isThisCorrect && <Icon name="x" size={20} className="text-red-400" />}
+                                        {hasAttempted && isCorrect && isThisCorrect && <Icon name="check" size={20} className="text-green-600" />}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderGridView = () => (
+                <div className="h-full overflow-y-auto p-8 bg-gray-50 custom-scrollbar">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                        <h2 className="text-3xl font-black text-gray-800">Tiến độ tổng quát</h2>
+                        <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                            <div><span className="text-[10px] font-bold text-gray-400 uppercase block">Điểm hiện tại</span><span className="text-2xl font-black text-blue-600">{score}/{rawSlidesData.length}</span></div>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3">
+                        {rawSlidesData.map((slide, idx) => {
+                            const progress = userProgress[slide.id] || { attempts: [], isCorrect: false };
+                            const isDone = progress.isCorrect;
+                            const wasPerfect = isDone && progress.attempts.length === 1;
+                            return (
+                                <button key={slide.id} onClick={() => { setCurrentSlideIndex(idx); setViewMode('present'); }} className={`aspect-square rounded-2xl border-2 flex flex-col items-center justify-center transition-all hover:scale-105 ${!isDone ? 'bg-white border-gray-200 text-gray-300' : wasPerfect ? 'bg-green-50 border-green-300 text-green-600' : 'bg-orange-50 border-orange-200 text-orange-400'}`}>
+                                    <span className="text-[10px] font-bold mb-0.5">Câu</span><span className="text-2xl font-black">{slide.id}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <div className="mt-12 text-center"><button onClick={resetQuiz} className="text-gray-400 hover:text-red-500 font-bold px-6 py-2 border border-dashed border-gray-300 rounded-xl flex items-center gap-2 mx-auto"><Icon name="rotate" size={18} /> Làm lại từ đầu</button></div>
+                </div>
+            );
+
+            return (
+                <div className="h-screen flex items-center justify-center p-4">
+                    <div className="w-full max-w-4xl bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col h-[90vh] relative">
+                        <div className="h-16 border-b border-gray-50 flex items-center justify-between px-8">
+                            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentSlideIndex(-1)}>
+                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center"><span className="text-white font-black text-xs">VM</span></div>
+                                <span className="font-black text-gray-800 hidden sm:inline">Vinamilk Academy</span>
+                            </div>
+                            <button onClick={() => setViewMode(v => v === 'present' ? 'grid' : 'present')} className="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-xl transition-all flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+                                {viewMode === 'present' ? <><Icon name="grid" size={16} /> Danh sách</> : <><Icon name="play" size={16} /> Quay lại</>}
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-hidden">
+                            {viewMode === 'grid' ? renderGridView() : currentSlideIndex === -1 ? renderTitleSlide() : renderQuestionSlide()}
+                        </div>
+
+                        {viewMode === 'present' && currentSlideIndex !== -1 && (
+                            <div className="h-20 px-8 border-t border-gray-50 flex items-center justify-between">
+                                <button onClick={() => setCurrentSlideIndex(v => Math.max(-1, v-1))} className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-gray-800"><Icon name="chevronLeft" /></button>
+                                <div className="w-1/3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-blue-600 transition-all duration-500" style={{ width: `${((currentSlideIndex + 1) / rawSlidesData.length) * 100}%` }} />
+                                </div>
+                                <button onClick={() => setCurrentSlideIndex(v => Math.min(rawSlidesData.length - 1, v+1))} className="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-600 text-white"><Icon name="chevronRight" /></button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
